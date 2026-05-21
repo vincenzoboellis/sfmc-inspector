@@ -30,15 +30,28 @@ var SfmcApi = (function () {
 
   // ── Data Extensions ──────────────────────────────────────────────────────────
 
-  function getDataExtensions() {
+  function getDataExtensions(onProgress) {
     // SFMC requires a $search prefix — we query all alphanumeric prefixes in parallel
-    // and deduplicate by customerKey
+    // and deduplicate by customerKey. The optional onProgress(completed, total) callback
+    // lets the UI report progress on the 39 parallel calls.
     var chars = "abcdefghijklmnopqrstuvwxyz0123456789-_ ".split("");
     var base = "/data-internal/v1/customobjects?retrievalType=1&includeFullPath=true&$pageSize=500&$page=1&$search=";
+    var completed = 0;
+    var total = chars.length;
+    var tick = function () {
+      completed++;
+      if (typeof onProgress === "function") {
+        try { onProgress(completed, total); } catch (e) {}
+      }
+    };
     var promises = chars.map(function(c) {
       return call(base + encodeURIComponent(c) + "%25").then(function(d) {
+        tick();
         return d.items || [];
-      }).catch(function() { return []; });
+      }).catch(function() {
+        tick();
+        return [];
+      });
     });
     return Promise.all(promises).then(function(results) {
       var seen = {};
