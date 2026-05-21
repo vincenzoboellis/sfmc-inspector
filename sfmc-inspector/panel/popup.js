@@ -203,6 +203,13 @@
     renderJourneyList(q);
   });
 
+  document.addEventListener("keydown", function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      els.globalSearch.focus();
+    }
+  });
+
   // ─── DATA EXTENSIONS ─────────────────────────────────────────────────────────
 
   function renderDeList(query) {
@@ -336,11 +343,10 @@
             }).join("") +
           "</div>";
 
-        // Wire clickable automation items → open automation detail in the Automations tab
+        // Wire click handlers — must run AFTER innerHTML is set
         sec.querySelectorAll(".relation-item--clickable").forEach(function (el) {
           el.addEventListener("click", function () {
-            var autoId = el.getAttribute("data-auto-id");
-            if (autoId) openAutomationFromDe(autoId);
+            openAutomationFromDe(el.getAttribute("data-auto-id"));
           });
         });
       }
@@ -438,7 +444,7 @@
 
               if (match) {
                 matches.push({
-                  id:        detail.id || auto.id || auto.automationId || "",
+                  id:        detail.id || detail.automationId || auto.id || auto.automationId || "",
                   name:      detail.name || auto.name || "—",
                   status:    detail.status || auto.status || "—",
                   queryName: act.name || "Query Activity",
@@ -455,49 +461,6 @@
 
       return Promise.all(detailPromises).then(function () { return matches; });
     });
-  }
-
-  // ─── Open Automation detail from DE detail view ───────────────────────────────
-
-  function mapRawAutomation(raw) {
-    return {
-      id:          raw.id || raw.automationId || "",
-      name:        raw.name || "—",
-      key:         raw.key  || raw.customerKey || "",
-      status:      raw.status || "—",
-      schedule:    raw.schedule ? (raw.schedule.scheduleTypeId === 1 ? "Scheduled" : "Triggered") : "—",
-      lastRunTime: raw.lastRunTime || null
-    };
-  }
-
-  function openAutomationFromDe(autoId) {
-    var rawList = state.allAutomations || [];
-    var rawAuto = null;
-    for (var i = 0; i < rawList.length; i++) {
-      var a = rawList[i];
-      if ((a.id || a.automationId) === autoId) { rawAuto = a; break; }
-    }
-    if (!rawAuto) return;
-
-    // If the Automations tab list has never been populated, hydrate it from the
-    // cache so pressing "Back" lands on a useful list, not an empty one.
-    if (!state.automations.loaded && rawList.length > 0) {
-      var items = rawList.map(mapRawAutomation);
-      state.automations.items  = items;
-      state.automations.loaded = true;
-      state.allAutomations     = rawList;
-      els.autoCount.textContent = items.length + " automations";
-      renderAutoList(els.globalSearch.value.trim());
-    }
-
-    // Close the DE detail panel so going back to the DE tab is clean
-    els.deDetail.classList.add("hidden");
-    els.deList.classList.remove("hidden");
-    document.querySelector(".panel-toolbar").classList.remove("hidden");
-
-    // Switch to the Automations tab and open the detail
-    switchTab("automations");
-    showAutoDetail(mapRawAutomation(rawAuto));
   }
 
   // ─── Journey → DE mapping ────────────────────────────────────────────────────
@@ -624,6 +587,49 @@
       els.autoLoading.classList.add("hidden");
       els.autoList.innerHTML = '<div class="no-results" style="color:var(--red)">' + escHtml(err.message) + "</div>";
     });
+  }
+
+  function mapRawAutomation(raw) {
+    if (!raw) return null;
+    return {
+      id:          raw.id || raw.automationId || "",
+      name:        raw.name || "—",
+      key:         raw.key  || raw.customerKey || "",
+      status:      raw.status || "—",
+      schedule:    raw.schedule ? (raw.schedule.scheduleTypeId === 1 ? "Scheduled" : "Triggered") : "—",
+      lastRunTime: raw.lastRunTime || null
+    };
+  }
+
+  function openAutomationFromDe(autoId) {
+    if (!autoId) return;
+
+    var rawList = state.allAutomations || [];
+    var rawAuto = null;
+    for (var i = 0; i < rawList.length; i++) {
+      var a = rawList[i];
+      if ((a.id || a.automationId) === autoId) { rawAuto = a; break; }
+    }
+    if (!rawAuto) return;
+
+    // If the Automations tab list has never been populated, hydrate it from the
+    // cache so pressing "Back" lands on a useful list, not an empty one.
+    if (!state.automations.loaded && rawList.length > 0) {
+      var items = rawList.map(mapRawAutomation);
+      state.automations.items  = items;
+      state.automations.loaded = true;
+      els.autoCount.textContent = items.length + " automations";
+      renderAutoList(els.globalSearch.value.trim());
+    }
+
+    // Close the DE detail panel so going back to the DE tab is clean
+    els.deDetail.classList.add("hidden");
+    els.deList.classList.remove("hidden");
+    document.querySelector(".panel-toolbar").classList.remove("hidden");
+
+    // Switch to the Automations tab and open the detail
+    switchTab("automations");
+    showAutoDetail(mapRawAutomation(rawAuto));
   }
 
   function showAutoDetail(auto) {
