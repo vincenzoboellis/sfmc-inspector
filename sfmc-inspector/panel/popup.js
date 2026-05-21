@@ -15,6 +15,7 @@
     de: {
       items:     [],
       loaded:    false,
+      loading:   false,
       filtered:  []
     },
     automations: {
@@ -256,12 +257,26 @@
 
   function loadDataExtensions() {
     if (!state.session || !state.session.isValid) return;
-    els.deLoading.classList.remove("hidden");
-    els.deList.innerHTML = "";
-    els.deCount.textContent = "Loading…";
+    if (state.de.loading) return; // guard against concurrent clicks
+    state.de.loading = true;
 
-    SfmcApi.getDataExtensions().then(function (data) {
+    var originalLabel = els.btnLoadDe.textContent;
+    els.btnLoadDe.disabled    = true;
+    els.btnLoadDe.textContent = "Loading…";
+    els.deLoading.classList.remove("hidden");
+    els.deList.innerHTML      = "";
+    els.deCount.textContent   = "0 / 39 prefixes…";
+
+    var finish = function () {
+      state.de.loading          = false;
+      els.btnLoadDe.disabled    = false;
+      els.btnLoadDe.textContent = originalLabel;
       els.deLoading.classList.add("hidden");
+    };
+
+    SfmcApi.getDataExtensions(function (done, total) {
+      els.deCount.textContent = done + " / " + total + " prefixes…";
+    }).then(function (data) {
       var raw = data.items || [];
       if (!Array.isArray(raw)) raw = [];
       var items = raw.map(function (de) {
@@ -282,12 +297,15 @@
       els.deCount.textContent = items.length + " DE" + (items.length !== 1 ? "s" : "");
       if (items.length === 0) {
         els.deList.innerHTML = '<div class="no-results">No Data Extensions found in this Business Unit.</div>';
+        finish();
         return;
       }
       renderDeList(els.globalSearch.value.trim());
+      finish();
     }).catch(function (err) {
-      els.deLoading.classList.add("hidden");
       els.deList.innerHTML = '<div class="no-results" style="color:var(--red)">' + escHtml(err.message) + "</div>";
+      els.deCount.textContent = "—";
+      finish();
     });
   }
 
@@ -346,7 +364,9 @@
         // Wire click handlers — must run AFTER innerHTML is set
         sec.querySelectorAll(".relation-item--clickable").forEach(function (el) {
           el.addEventListener("click", function () {
-            openAutomationFromDe(el.getAttribute("data-auto-id"));
+            var nameEl = el.querySelector(".relation-item-name");
+            var name   = nameEl ? nameEl.textContent : "";
+            openAutomationFromDe(el.getAttribute("data-auto-id"), name);
           });
         });
       }
@@ -443,8 +463,12 @@
                           (deNameLow && targetName === deNameLow);
 
               if (match) {
+                // CRITICAL: use the SAME id source we will later look up by.
+                // state.allAutomations comes from the legacy list endpoint,
+                // so we must store the legacy id (auto.id / auto.automationId),
+                // NOT detail.id which is from a different API namespace.
                 matches.push({
-                  id:        detail.id || detail.automationId || auto.id || auto.automationId || "",
+                  id:        auto.id || auto.automationId || "",
                   name:      detail.name || auto.name || "—",
                   status:    detail.status || auto.status || "—",
                   queryName: act.name || "Query Activity",
@@ -601,7 +625,7 @@
     };
   }
 
-  function openAutomationFromDe(autoId) {
+  function openAutomationFromDe(autoId, fallbackName) {
     if (!autoId) return;
 
     var rawList = state.allAutomations || [];
@@ -610,7 +634,6 @@
       var a = rawList[i];
       if ((a.id || a.automationId) === autoId) { rawAuto = a; break; }
     }
-    if (!rawAuto) return;
 
     // If the Automations tab list has never been populated, hydrate it from the
     // cache so pressing "Back" lands on a useful list, not an empty one.
@@ -629,7 +652,22 @@
 
     // Switch to the Automations tab and open the detail
     switchTab("automations");
-    showAutoDetail(mapRawAutomation(rawAuto));
+
+    if (rawAuto) {
+      showAutoDetail(mapRawAutomation(rawAuto));
+    } else {
+      // Defensive fallback: id not in cache (shouldn't happen after the id-source
+      // fix, but covers any future schema change). showAutoDetail's own
+      // getAutomationById call will fetch the real data and re-render activities.
+      showAutoDetail({
+        id:          autoId,
+        name:        fallbackName || "Loading…",
+        key:         "",
+        status:      "—",
+        schedule:    "—",
+        lastRunTime: null
+      });
+    }
   }
 
   function showAutoDetail(auto) {
