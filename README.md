@@ -2,7 +2,7 @@
 
 > The definitive developer toolkit for Salesforce Marketing Cloud Engagement.
 
-![Version](https://img.shields.io/badge/version-0.1.2-blue)
+![Version](https://img.shields.io/badge/version-1.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Manifest](https://img.shields.io/badge/manifest-v3-orange)
 
@@ -12,13 +12,21 @@
 
 SFMC Inspector runs inside your browser while you're logged into Salesforce Marketing Cloud. It reads your existing session — no OAuth setup, no credentials to enter — and gives you superpowers the native UI doesn't have.
 
-### Features (v0.1.0)
+### What's new in 1.1
+
+- **Click-through DE → Automation detail** — from any Data Extension, click directly on an automation that writes to it to jump straight to its detail view (activities + inline SQL with quality score). Previously you had to switch tab and search by name manually.
+- **DE loading progress counter** — the Load button now reports live progress (`X / 39 prefixes…`) during the SFMC search workaround, so you can see the extension is working instead of staring at a spinner.
+- **Load button guards** — disabled during fetch to prevent accidental double-loads and parallel API storms.
+- **Polished search bar** — removed the redundant `⌘K` hint; the shortcut still works.
+- **Icons shipped** — extension now has its full icon set in the toolbar and Chrome Web Store listing.
+
+### Features (v1.1)
 
 | Feature | Description |
 |---|---|
 | **Session Detection** | Automatically detects your SFMC session from any open SFMC tab |
 | **Data Extension Explorer** | Browse all DEs with quick search |
-| **DE → Automation Map** | For any DE, see which Query Activities write to it and their SQL |
+| **DE → Automation Map** | For any DE, see which Query Activities write to it (with inline SQL) — and click any row to jump straight to the automation detail |
 | **DE → Journey Map** | See which Journeys reference a DE as entry source or activity |
 | **Automation Monitor** | Browse automations with status, schedule, and inline SQL preview |
 | **SQL Linter** | 10-rule static analysis for SFMC Query Activity SQL |
@@ -70,7 +78,7 @@ sfmc-inspector/
 │   ├── sql-linter.js             # SQL static analysis (10 rules)
 │   └── ampscript-linter.js       # AMPScript static analysis (10 rules)
 └── assets/
-    └── icons/                    # Extension icons (to be added)
+    └── icons/                    # Extension icons (16/32/48/128 px)
 ```
 
 ---
@@ -110,7 +118,7 @@ sfmc-inspector/
 
 ## Roadmap
 
-- [ ] Icons (v0.1.1)
+- [x] Icons
 - [ ] Journey dependency map (visual tree)
 - [ ] DE Health Dashboard (NULL columns, orphaned DEs)
 - [ ] Broken link detector for emails
