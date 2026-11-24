@@ -2,8 +2,9 @@
   "manifest_version": 3,
   "name": "SFMC Inspector",
   "short_name": "SFMC Inspector",
-  "version": "0.1.2",
+  "version": "1.2",
   "description": "The definitive developer toolkit for Salesforce Marketing Cloud. Explore DEs, Automations, Journeys and lint your SQL.",
+  "minimum_chrome_version": "121",
   "icons": {
     "16":  "assets/icons/icon16.png",
     "32":  "assets/icons/icon32.png",
@@ -21,24 +22,12 @@
     }
   },
   "background": {
+    "scripts": ["background/service-worker.js"],
     "service_worker": "background/service-worker.js",
     "type": "module"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "*://*.exacttarget.com/*",
-        "*://*.marketingcloud.com/*",
-        "*://*.salesforce-marketingcloud.com/*"
-      ],
-      "js": ["content/detector.js"],
-      "run_at": "document_start",
-      "all_frames": false
-    }
-  ],
   "permissions": [
     "storage",
-    "activeTab",
     "scripting",
     "tabs"
   ],

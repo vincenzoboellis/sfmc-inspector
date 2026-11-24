@@ -917,6 +917,12 @@
 
   // ─── Init ────────────────────────────────────────────────────────────────────
 
+  // Footer version comes from the manifest: one source of truth, no drift
+  var versionEl = $("appVersion");
+  if (versionEl) {
+    versionEl.textContent = "SFMC Inspector · v" + chrome.runtime.getManifest().version;
+  }
+
   loadSession();
 
 })();

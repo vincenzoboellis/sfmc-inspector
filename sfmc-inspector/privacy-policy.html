@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SFMC Inspector — Privacy Policy</title>
+  <title>SFMC Inspector | Privacy Policy</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -76,14 +76,14 @@
     </div>
 
     <h1>Privacy Policy</h1>
-    <div class="date">Last updated: April 2026</div>
+    <div class="date">Last updated: November 2026</div>
 
     <div class="highlight">
       <strong>Summary:</strong> SFMC Inspector does not collect, store, or transmit any personal data to external servers. All data stays within your browser and your Salesforce Marketing Cloud account.
     </div>
 
     <h2>What SFMC Inspector does</h2>
-    <p>SFMC Inspector is a browser extension that helps Salesforce Marketing Cloud (SFMC) developers and administrators explore Data Extensions, Automations, Journeys, and analyse SQL and AMPScript code quality — all from within the SFMC interface.</p>
+    <p>SFMC Inspector is a browser extension for Google Chrome and Mozilla Firefox that helps Salesforce Marketing Cloud (SFMC) developers and administrators explore Data Extensions, Automations, Journeys, and analyse SQL and AMPScript code quality, all from within the SFMC interface.</p>
 
     <h2>Data we access</h2>
     <p>When you use SFMC Inspector on a Salesforce Marketing Cloud page, the extension:</p>
@@ -104,23 +104,23 @@
     </ul>
 
     <h2>Local storage</h2>
-    <p>SFMC Inspector uses Chrome's session storage (<code>chrome.storage.session</code>) to temporarily cache your SFMC session context (hostname, stack key, and authentication token) for the duration of your browser session. This data is:</p>
+    <p>SFMC Inspector uses the browser's session storage (<code>storage.session</code>) to temporarily cache your SFMC session context (hostname, stack key, Business Unit ID and session validity) for the duration of your browser session. No tokens, passwords or cookies are stored. This data is:</p>
     <ul>
       <li>Stored locally in your browser only</li>
-      <li>Cleared automatically when you close Chrome</li>
+      <li>Cleared automatically when you close the browser</li>
       <li>Never transmitted to any external server</li>
     </ul>
 
     <h2>Third-party services</h2>
-    <p>SFMC Inspector does not use any third-party services, analytics platforms, or external APIs. The only network requests made are directly to your Salesforce Marketing Cloud account's own API endpoints (<code>*.exacttarget.com</code>, <code>*.marketingcloudapis.com</code>).</p>
+    <p>SFMC Inspector does not use any third-party services, analytics platforms, or external APIs. Fonts are bundled with the extension, so no request is made to font or CDN providers. The only network requests made are directly to your Salesforce Marketing Cloud account's own API endpoints (<code>*.exacttarget.com</code>, <code>*.marketingcloudapis.com</code>).</p>
 
     <h2>Permissions</h2>
-    <p>The extension requests the following Chrome permissions:</p>
+    <p>The extension requests the following browser permissions:</p>
     <ul>
-      <li><strong>scripting / activeTab</strong> — to execute authenticated API calls directly within the active SFMC tab; the browser's existing session is used automatically, without reading or storing cookies</li>
-      <li><strong>storage</strong> — to temporarily cache session context locally in the browser</li>
-      <li><strong>tabs</strong> — to find open SFMC tabs for session detection</li>
-      <li><strong>host permissions</strong> for <code>*.exacttarget.com</code>, <code>*.marketingcloudapis.com</code>, <code>*.marketingcloud.com</code> and <code>*.marketingcloudapps.com</code> — to communicate with SFMC APIs</li>
+      <li><strong>scripting</strong>: to execute authenticated API calls directly within your open SFMC tab; the browser's existing session is used automatically, without reading or storing cookies</li>
+      <li><strong>storage</strong>: to temporarily cache session context locally in the browser</li>
+      <li><strong>tabs</strong>: to find open SFMC tabs for session detection</li>
+      <li><strong>host permissions</strong> for <code>*.exacttarget.com</code>, <code>*.marketingcloudapis.com</code>, <code>*.marketingcloud.com</code>, <code>*.salesforce-marketingcloud.com</code> and <code>*.marketingcloudapps.com</code>: to communicate with SFMC APIs</li>
     </ul>
     <p>No permission is used beyond its stated purpose.</p>
 
