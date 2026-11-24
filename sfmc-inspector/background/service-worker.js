@@ -15,6 +15,21 @@ var session = {
   isValid:        false
 };
 
+// The background context (Chrome service worker / Firefox event page) can be
+// unloaded when idle. Every handler waits for the session to be restored from
+// storage.session before using it, so a message that wakes the background up
+// never sees an empty session.
+var sessionReady = new Promise(function(resolve) {
+  try {
+    chrome.storage.session.get("sfmcSession", function(result) {
+      if (result && result.sfmcSession) session = result.sfmcSession;
+      resolve();
+    });
+  } catch (e) {
+    resolve();
+  }
+});
+
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   switch (msg.type) {
 
@@ -25,8 +40,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       return true;
 
     case "GET_SESSION":
-      sendResponse(getSessionStatus());
-      break;
+      sessionReady.then(function() { sendResponse(getSessionStatus()); });
+      return true;
 
     case "SFMC_API_CALL":
       handleApiCall(msg.payload)
@@ -41,6 +56,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
 async function detectSession(hostname) {
   if (!hostname) throw new Error("No hostname provided");
+  await sessionReady; // avoid a late restore overwriting the fresh session
 
   var fuelBase = "https://" + hostname + "/cloud/fuelapi";
 
@@ -55,7 +71,12 @@ async function detectSession(hostname) {
   var results = await chrome.scripting.executeScript({
     target: { tabId: sfmcTab.id },
     func: function(fuelBase) {
-      return fetch(fuelBase + "/legacy/v1/beta/folder/0/children?$pageSize=1", {
+      // Firefox: content.fetch behaves like the page's own request (cookies,
+      // Origin, Referer). Chrome: the content script fetch already does.
+      var pageFetch = (typeof content !== "undefined" && content && typeof content.fetch === "function")
+        ? content.fetch.bind(content)
+        : fetch;
+      return pageFetch(fuelBase + "/legacy/v1/beta/folder/0/children?$pageSize=1", {
         credentials: "include"
       })
       .then(function(r) { return r.json().then(function(d) { return { status: r.status, data: d }; }); })
@@ -89,6 +110,7 @@ async function detectSession(hostname) {
 // ── API call — injected into SFMC tab to use session cookies ──────────────────
 
 async function handleApiCall(payload) {
+  await sessionReady;
   if (!session.fuelBase) throw new Error("Session not established. Click Refresh.");
 
   var tabs = await chrome.tabs.query({});
@@ -108,7 +130,11 @@ async function handleApiCall(payload) {
       };
       if (body) opts.body = JSON.stringify(body);
 
-      return fetch(url, opts)
+      // Same page-context fetch as in detectSession (see comment there)
+      var pageFetch = (typeof content !== "undefined" && content && typeof content.fetch === "function")
+        ? content.fetch.bind(content)
+        : fetch;
+      return pageFetch(url, opts)
         .then(function(r) {
           return r.text().then(function(t) {
             return { status: r.status, text: t };
@@ -139,7 +165,3 @@ function getSessionStatus() {
     hasToken:       session.isValid
   };
 }
-
-chrome.storage.session.get("sfmcSession", function(result) {
-  if (result.sfmcSession) session = result.sfmcSession;
-});

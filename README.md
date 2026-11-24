@@ -2,15 +2,23 @@
 
 > The definitive developer toolkit for Salesforce Marketing Cloud Engagement.
 
-![Version](https://img.shields.io/badge/version-1.1-blue)
+![Version](https://img.shields.io/badge/version-1.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Manifest](https://img.shields.io/badge/manifest-v3-orange)
+![Browsers](https://img.shields.io/badge/browsers-Chrome%20%7C%20Firefox-lightgrey)
 
 ---
 
 ## What it does
 
 SFMC Inspector runs inside your browser while you're logged into Salesforce Marketing Cloud. It reads your existing session — no OAuth setup, no credentials to enter — and gives you superpowers the native UI doesn't have.
+
+### What's new in 1.2
+
+- **Firefox support**: SFMC Inspector now runs on Firefox (140+) as well as Chrome, from the same codebase.
+- **Fonts bundled locally**: Geist and JetBrains Mono ship with the extension, so the popup makes no request to Google Fonts or any other third party.
+- **Leaner permissions**: removed the unused `activeTab` permission and the unused page content script.
+- **More robust session restore**: when the browser suspends the background script, the session is restored before any API call is answered.
 
 ### What's new in 1.1
 
@@ -20,7 +28,7 @@ SFMC Inspector runs inside your browser while you're logged into Salesforce Mark
 - **Polished search bar** — removed the redundant `⌘K` hint; the shortcut still works.
 - **Icons shipped** — extension now has its full icon set in the toolbar and Chrome Web Store listing.
 
-### Features (v1.1)
+### Features
 
 | Feature | Description |
 |---|---|
@@ -37,8 +45,7 @@ SFMC Inspector runs inside your browser while you're logged into Salesforce Mark
 
 ## How authentication works
 
-SFMC Inspector uses the **same session your browser already has** when you're logged into SFMC. It executes authenticated API calls directly inside your active SFMC tab using Chrome's scripting API — the browser's existing session is used 
-automatically, without reading or storing cookies.
+SFMC Inspector uses the **same session your browser already has** when you're logged into SFMC. It executes authenticated API calls directly inside your open SFMC tab using the browser's scripting API: the browser's existing session is used automatically, without reading or storing cookies.
 
 - ✅ No OAuth setup required
 - ✅ No credentials stored
@@ -48,15 +55,31 @@ automatically, without reading or storing cookies.
 
 ---
 
-## Installation (development)
+## Installation
 
+- **Chrome**: [Chrome Web Store](https://chromewebstore.google.com/detail/lljfkobpodlajfnkikekolokldggefci)
+- **Firefox**: Firefox Add-ons (link coming soon)
+
+## Development
+
+### Chrome
 1. Clone this repository
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable **Developer mode** (top right toggle)
-4. Click **Load unpacked**
-5. Select the `sfmc-inspector/` folder
-6. Open Salesforce Marketing Cloud in a tab
-7. Click the SFMC Inspector icon in your toolbar
+2. Open `chrome://extensions/` and enable **Developer mode**
+3. Click **Load unpacked** and select the `sfmc-inspector/` folder
+4. Open Salesforce Marketing Cloud in a tab and click the SFMC Inspector icon
+
+### Firefox
+1. Run `node scripts/build.js` (Node 18+, no dependencies)
+2. Open `about:debugging#/runtime/this-firefox` and click **Load Temporary Add-on…**
+3. Select `dist/firefox/manifest.json`
+4. Open Salesforce Marketing Cloud in a tab and click the SFMC Inspector icon
+
+### Building store packages
+`node scripts/build.js` creates, with `manifest.json` at the ZIP root:
+- `dist/sfmc-inspector-chrome-<version>.zip` for the Chrome Web Store
+- `dist/sfmc-inspector-firefox-<version>.zip` for addons.mozilla.org
+
+The base `sfmc-inspector/manifest.json` declares both `background.scripts` (Firefox) and `background.service_worker` (Chrome). The build strips the key each store does not use and adds the Firefox-only `browser_specific_settings`.
 
 ---
 
@@ -64,21 +87,23 @@ automatically, without reading or storing cookies.
 
 ```
 sfmc-inspector/
-├── manifest.json                 # Manifest V3
+├── manifest.json                 # Manifest V3 (base, cross-browser)
 ├── background/
 │   └── service-worker.js         # Session management, API proxy
-├── content/
-│   └── detector.js               # SFMC page detector, token extractor
 ├── panel/
 │   ├── popup.html                # Extension popup UI
-│   ├── popup.css                 # Styles (dark theme, Geist + JetBrains Mono)
+│   ├── popup.css                 # Styles (dark theme, bundled Geist + JetBrains Mono)
 │   └── popup.js                  # UI controller
 ├── shared/
 │   ├── sfmc-api.js               # REST API wrapper
 │   ├── sql-linter.js             # SQL static analysis (10 rules)
 │   └── ampscript-linter.js       # AMPScript static analysis (10 rules)
 └── assets/
+    ├── fonts/                    # Self-hosted woff2 fonts (SIL OFL 1.1)
     └── icons/                    # Extension icons (16/32/48/128 px)
+
+scripts/
+└── build.js                      # Builds Chrome and Firefox packages into dist/
 ```
 
 ---
@@ -123,8 +148,9 @@ sfmc-inspector/
 - [ ] DE Health Dashboard (NULL columns, orphaned DEs)
 - [ ] Broken link detector for emails
 - [ ] Export metadata to JSON/CSV
-- [ ] Firefox support
-- [x] Chrome Web Store listing (submitted)
+- [x] Chrome Web Store listing
+- [x] Firefox support (1.2)
+- [ ] Firefox Add-ons listing
 
 ---
 
